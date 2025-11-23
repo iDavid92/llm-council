@@ -8,7 +8,6 @@ export default defineConfig({
     host: true,
     allowedHosts: [
       'llm-council-production-4d78.up.railway.app,' // din Railway-domän
-      'llm-council-production.up.railway.app' // din Railway-domän
     ]
   }
 })
