@@ -10,7 +10,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Council members - list of OpenRouter model identifiers
 COUNCIL_MODELS = [
-    "openai/gpt-oss-20b:free",
+    "tngtech/deepseek-r1t2-chimera:free",
     "meta-llama/llama-3.3-70b-instruct:free",
     "alibaba/tongyi-deepresearch-30b-a3b:free",
     "x-ai/grok-4.1-fast:free",
