@@ -14,6 +14,8 @@ COUNCIL_MODELS = [
     "meta-llama/llama-3.3-70b-instruct:free",
     "alibaba/tongyi-deepresearch-30b-a3b:free",
     "x-ai/grok-4.1-fast:free",
+    "openrouter/bert-nebulon-alpha",
+    "nousresearch/hermes-3-llama-3.1-405b:free"
 ]
 
 # Chairman model - synthesizes final response
