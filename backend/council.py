@@ -1,8 +1,9 @@
-"""3-stage LLM Council orchestration."""
+"""3-stage LLM Council orchestration with weighted voting."""
 
 from typing import List, Dict, Any, Tuple
+from collections import defaultdict
 from .openrouter import query_models_parallel, query_model
-from .config import COUNCIL_MODELS, CHAIRMAN_MODEL
+from .config import COUNCIL_MODELS, CHAIRMAN_MODEL, COUNCIL_MODEL_CONFIG
 
 
 async def stage1_collect_responses(user_query: str) -> List[Dict[str, Any]]:
@@ -193,7 +194,6 @@ def parse_ranking_from_text(ranking_text: str) -> List[str]:
         if len(parts) >= 2:
             ranking_section = parts[1]
             # Try to extract numbered list format (e.g., "1. Response A")
-            # This pattern looks for: number, period, optional space, "Response X"
             numbered_matches = re.findall(r'\d+\.\s*Response [A-Z]', ranking_section)
             if numbered_matches:
                 # Extract just the "Response X" part
@@ -213,45 +213,51 @@ def calculate_aggregate_rankings(
     label_to_model: Dict[str, str]
 ) -> List[Dict[str, Any]]:
     """
-    Calculate aggregate rankings across all models.
+    Calculate aggregate rankings across all models using weights.
 
     Args:
         stage2_results: Rankings from each model
         label_to_model: Mapping from anonymous labels to model names
 
     Returns:
-        List of dicts with model name and average rank, sorted best to worst
+        List of dicts with model name and weighted average rank, sorted best to worst
     """
-    from collections import defaultdict
+    # Track positions and weights for each target model
+    model_positions: Dict[str, List[Tuple[int, float]]] = defaultdict(list)
 
-    # Track positions for each model
-    model_positions = defaultdict(list)
+    # Precompute mapping from ranking model to its weight
+    ranking_model_weights: Dict[str, float] = {
+        model: cfg.get("weight", 1.0) for model, cfg in COUNCIL_MODEL_CONFIG.items()
+    }
 
     for ranking in stage2_results:
-        ranking_text = ranking['ranking']
+        ranking_model = ranking['model']
+        weight = ranking_model_weights.get(ranking_model, 1.0)
 
-        # Parse the ranking from the structured format
+        ranking_text = ranking['ranking']
         parsed_ranking = parse_ranking_from_text(ranking_text)
 
         for position, label in enumerate(parsed_ranking, start=1):
             if label in label_to_model:
-                model_name = label_to_model[label]
-                model_positions[model_name].append(position)
+                target_model = label_to_model[label]
+                model_positions[target_model].append((position, weight))
 
-    # Calculate average position for each model
+    # Compute weighted average position for each model
     aggregate = []
-    for model, positions in model_positions.items():
-        if positions:
-            avg_rank = sum(positions) / len(positions)
-            aggregate.append({
-                "model": model,
-                "average_rank": round(avg_rank, 2),
-                "rankings_count": len(positions)
-            })
+    for model, pos_list in model_positions.items():
+        if pos_list:
+            total_weight = sum(w for _, w in pos_list)
+            weighted_sum = sum(p * w for p, w in pos_list)
+            avg_rank = weighted_sum / total_weight if total_weight > 0 else None
+            if avg_rank is not None:
+                aggregate.append({
+                    "model": model,
+                    "average_rank": round(avg_rank, 2),
+                    "rankings_count": len(pos_list)
+                })
 
     # Sort by average rank (lower is better)
     aggregate.sort(key=lambda x: x['average_rank'])
-
     return aggregate
 
 
@@ -284,7 +290,7 @@ Title:"""
     title = response.get('content', 'New Conversation').strip()
 
     # Clean up the title - remove quotes, limit length
-    title = title.strip('"\'')
+    title = title.strip("\"'")
 
     # Truncate if too long
     if len(title) > 50:
@@ -316,7 +322,7 @@ async def run_full_council(user_query: str) -> Tuple[List, List, Dict, Dict]:
     # Stage 2: Collect rankings
     stage2_results, label_to_model = await stage2_collect_rankings(user_query, stage1_results)
 
-    # Calculate aggregate rankings
+    # Calculate aggregate rankings (weighted)
     aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
 
     # Stage 3: Synthesize final answer
@@ -326,10 +332,12 @@ async def run_full_council(user_query: str) -> Tuple[List, List, Dict, Dict]:
         stage2_results
     )
 
-    # Prepare metadata
+    # Prepare metadata (include roles if desired)
+    roles = {model: cfg["role"] for model, cfg in COUNCIL_MODEL_CONFIG.items()}
     metadata = {
         "label_to_model": label_to_model,
-        "aggregate_rankings": aggregate_rankings
+        "aggregate_rankings": aggregate_rankings,
+        "roles": roles,
     }
 
     return stage1_results, stage2_results, stage3_result, metadata
