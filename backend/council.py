@@ -23,16 +23,17 @@ async def stage1_collect_responses(user_query: str) -> List[Dict[str, Any]]:
 
     # Format results
     stage1_results = []
-for model, response in responses.items():
-    if response is not None:
-        stage1_results.append({
-            "model": model,
-            "response": response.get('content', '')
-        })
-    else:
-        print(f"[Stage1] Model {model} FAILED (response is None)")
+    for model, response in responses.items():
+        if response is not None:
+            stage1_results.append({
+                "model": model,
+                "response": response.get('content', '')
+            })
+        else:
+            # Logging to see which models fail in Stage 1
+            print(f"[Stage1] Model {model} FAILED (response is None)")
 
-return stage1_results
+    return stage1_results
 
 
 async def stage2_collect_rankings(
@@ -112,8 +113,9 @@ Now provide your evaluation and ranking:"""
                 "parsed_ranking": parsed
             })
         else:
-            print(f"[Stage1] Model {model} FAILED (response is None)")
-    
+            # Logging to see which models fail in Stage 2
+            print(f"[Stage2] Model {model} FAILED (response is None)")
+
     return stage2_results, label_to_model
 
 
