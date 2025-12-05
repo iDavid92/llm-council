@@ -111,9 +111,9 @@ Now provide your evaluation and ranking:"""
                 "ranking": full_text,
                 "parsed_ranking": parsed
             })
-            else:
-        print(f"[Stage2] Model {model} FAILED (response is None)")
-
+        else:
+            print(f"[Stage1] Model {model} FAILED (response is None)")
+    
     return stage2_results, label_to_model
 
 
