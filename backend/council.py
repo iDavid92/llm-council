@@ -32,7 +32,7 @@ for model, response in responses.items():
     else:
         print(f"[Stage1] Model {model} FAILED (response is None)")
 
-    return stage1_results
+return stage1_results
 
 
 async def stage2_collect_rankings(
