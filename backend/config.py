@@ -13,7 +13,6 @@ COUNCIL_MODELS = [
     "tngtech/deepseek-r1t2-chimera:free",
     "meta-llama/llama-3.3-70b-instruct:free",
     "alibaba/tongyi-deepresearch-30b-a3b:free",
-    "openrouter/bert-nebulon-alpha",
     "nousresearch/hermes-3-llama-3.1-405b:free",
     "google/gemma-3-27b-it:free",
     "mistralai/mistral-small-3.1-24b-instruct:free",
@@ -27,15 +26,11 @@ COUNCIL_MODEL_CONFIG = {
     },
     "meta-llama/llama-3.3-70b-instruct:free": {
         "role": "Moderator",
-        "weight": 0.20,
+        "weight": 0.25,  # +0.05 efter normalisering
     },
     "alibaba/tongyi-deepresearch-30b-a3b:free": {
         "role": "Researcher",
         "weight": 0.10,
-    },
-    "openrouter/bert-nebulon-alpha": {
-        "role": "Baseline",
-        "weight": 0.05,
     },
     "nousresearch/hermes-3-llama-3.1-405b:free": {
         "role": "Filosof",
@@ -50,6 +45,7 @@ COUNCIL_MODEL_CONFIG = {
         "weight": 0.10,
     },
 }
+
 CHAIRMAN_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 # OpenRouter API endpoint
