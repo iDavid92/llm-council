@@ -13,12 +13,13 @@ COUNCIL_MODELS = [
     "tngtech/deepseek-r1t2-chimera:free",
     "meta-llama/llama-3.3-70b-instruct:free",
     "alibaba/tongyi-deepresearch-30b-a3b:free",
-    "x-ai/grok-4.1-fast:free",
     "openrouter/bert-nebulon-alpha",
     "nousresearch/hermes-3-llama-3.1-405b:free",
+    "google/gemma-3-27b-it:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+    
 ]
 
-# Per‑modell konfiguration: roll och vikt (summan = 1.0)
 COUNCIL_MODEL_CONFIG = {
     "tngtech/deepseek-r1t2-chimera:free": {
         "role": "Logiker",
@@ -32,10 +33,6 @@ COUNCIL_MODEL_CONFIG = {
         "role": "Researcher",
         "weight": 0.10,
     },
-    "x-ai/grok-4.1-fast:free": {
-        "role": "Realist",
-        "weight": 0.20,
-    },
     "openrouter/bert-nebulon-alpha": {
         "role": "Baseline",
         "weight": 0.05,
@@ -44,10 +41,16 @@ COUNCIL_MODEL_CONFIG = {
         "role": "Filosof",
         "weight": 0.30,
     },
+    "google/gemma-3-27b-it:free": {
+        "role": "Strateg",
+        "weight": 0.10,
+    },
+    "mistralai/mistral-small-3.1-24b-instruct:free": {
+        "role": "Realist",
+        "weight": 0.10,
+    },
 }
-
-# Chairman model – synthesizes final response
-CHAIRMAN_MODEL = "x-ai/grok-4.1-fast:free"
+CHAIRMAN_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 # OpenRouter API endpoint
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
