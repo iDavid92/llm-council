@@ -92,22 +92,52 @@ export const api = {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
+    let buffer = '';
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      // Lägg till ny chunk i buffern (stream: true för att hantera ev. uppdelade UTF-8-tecken)
+      const chunkText = decoder.decode(value, { stream: true });
+      buffer += chunkText;
+
+      // Dela upp på radbrytningar
+      const lines = buffer.split('\n');
+
+      // Sista raden kan vara ofullständig → spara tillbaka i buffer
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          try {
-            const event = JSON.parse(data);
-            onEvent(event.type, event);
-          } catch (e) {
-            console.error('Failed to parse SSE event:', e);
-          }
+        if (!line.startsWith('data: ')) continue;
+
+        const data = line.slice(6).trim();
+        if (!data) continue;
+
+        try {
+          const event = JSON.parse(data);
+          // event.type kommer från backend: 'stage1_start', 'stage1_complete', etc.
+          onEvent(event.type, event);
+        } catch (e) {
+          console.error('Failed to parse SSE event:', e, 'raw data:', data);
+        }
+      }
+    }
+
+    // Flush eventuell kvarvarande text i decoder + buffer
+    const finalText = decoder.decode();
+    if (finalText) {
+      buffer += finalText;
+    }
+
+    if (buffer.trim().startsWith('data: ')) {
+      const data = buffer.trim().slice(6).trim();
+      if (data) {
+        try {
+          const event = JSON.parse(data);
+          onEvent(event.type, event);
+        } catch (e) {
+          console.error('Failed to parse final SSE event:', e, 'raw data:', data);
         }
       }
     }
