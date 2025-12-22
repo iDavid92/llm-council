@@ -8,6 +8,24 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <!-- Bandbredds- och lösenordskontroll -->
+    <script type="module">
+      // Kontrollera att query-parametern ?hej finns
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('hej')) {
+        // Ladda ingen app eller innehåll om parametern saknas
+        document.body.innerHTML = '';
+      } else {
+        // Enkel lösenordsprompt
+        const pwd = prompt('Ange lösenord');
+        if (pwd === '3621') {
+          // Rätt lösenord: importera och starta React-appen
+          import('/src/main.jsx');
+        } else {
+          // Fel lösenord: visa nekad-meddelande istället för app
+          document.body.innerHTML = 'Nekad';
+        }
+      }
+    </script>
   </body>
 </html>
