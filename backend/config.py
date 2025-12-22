@@ -1,4 +1,4 @@
-"""Configuration for the LLM Council with roles and weights."""
+"""Configuration for the LLM Council with roles and weights. """
 
 import os
 from dotenv import load_dotenv
